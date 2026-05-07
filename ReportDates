@@ -1,0 +1,38 @@
+--Create a table with dates for the report.  This links to the main calendar table.
+
+--Home → New Source → Blank Query
+    ---Rename Query to 'ReportDates'
+      ---Home → Advanced Editor
+      ----paste this:
+
+let
+    current_utc_datetime = DateTimeZone.UtcNow(),
+
+    dst_start_in_utc = #datetimezone(2026, 9, 27, 2, 0, 0, 0, 0),
+    dst_end_in_utc   = #datetimezone(2026, 4, 5, 3, 0, 0, 0, 0),
+
+    utc_offset =
+        if current_utc_datetime >= dst_end_in_utc
+           and current_utc_datetime < dst_start_in_utc
+        then 12
+        else 13,
+
+    timestamp =
+        DateTimeZone.SwitchZone(current_utc_datetime, utc_offset),
+
+    ConvertedToTable =
+        Table.FromRecords({
+            [ timestamp = timestamp,
+              utc_offset = utc_offset ]
+        }),
+
+    ChangedType =
+        Table.TransformColumnTypes(
+            ConvertedToTable,
+            {
+                {"timestamp", type datetimezone},
+                {"utc_offset", Int64.Type}
+            }
+        )
+in
+    ChangedType
