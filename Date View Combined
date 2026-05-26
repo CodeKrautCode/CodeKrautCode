@@ -1,0 +1,155 @@
+-- code to create time selectors in PBI
+
+dateView_Combined = 
+VAR _now = MIN(md_ReportDates[timestamp])
+VAR _today = DATE(YEAR(_now), MONTH(_now), DAY(_now))
+VAR _year = YEAR(_today)
+VAR _month = MONTH(_today)
+
+-- Fiscal year starts Aug 1
+VAR fiscalYearStart =
+    IF(_month < 8, DATE(_year - 1, 8, 1), DATE(_year, 8, 1))
+
+VAR fiscalStartCurrent = fiscalYearStart
+VAR fiscalStartPrevious = EDATE(fiscalYearStart, -12)
+VAR fiscalEndPrevious = fiscalYearStart - 1
+
+VAR allStartDate =
+    DATE((MIN(md_DateTable[Year])), 8, 1)
+
+-- Week (Sun–Sat)
+-- WEEKDAY(date,1) => Sunday=1 ... Saturday=7
+VAR currentWeekStart = _today - WEEKDAY(_today, 1) + 1
+VAR currentWeekEnd = currentWeekStart + 6
+VAR lastWeekStart = currentWeekStart - 7
+VAR lastWeekEnd = currentWeekStart - 1
+
+-- Month boundaries
+VAR thisMonthStart = DATE(_year, _month, 1)
+VAR thisMonthEnd = EOMONTH(_today, 0)
+VAR lastMonthStart = EOMONTH(_today, -1) + 1
+VAR lastMonthEnd = EOMONTH(_today, -1)
+
+-- Fiscal quarter (Q1=Aug-Oct, Q2=Nov-Jan, Q3=Feb-Apr, Q4=May-Jul)
+VAR fiscalMonthIndex = MOD(_month - 8 + 12, 12) + 1        -- Aug=1 ... Jul=12
+VAR fiscalQuarter = INT((fiscalMonthIndex - 1) / 3) + 1    -- 1..4
+VAR thisQuarterStart =
+    EDATE(fiscalYearStart, (fiscalQuarter - 1) * 3)
+VAR thisQuarterEnd =
+    EDATE(thisQuarterStart, 3) - 1
+
+VAR lastQuarterStart =
+    EDATE(thisQuarterStart, -3)
+VAR lastQuarterEnd =
+    thisQuarterStart - 1
+
+RETURN
+SELECTCOLUMNS(
+    UNION(
+        -- Yesterday
+        GENERATE(
+            SELECTCOLUMNS({"Yesterday"}, "View", [Value], "Order", 1),
+            GENERATESERIES(_today - 1, _today - 1)
+        ),
+
+        -- Today
+        GENERATE(
+            SELECTCOLUMNS({"Today"}, "View", [Value], "Order", 2),
+            GENERATESERIES(_today, _today)
+        ),
+
+        -- Last 3 Days (including today)
+        GENERATE(
+            SELECTCOLUMNS({"Last 3 Days"}, "View", [Value], "Order", 3),
+            GENERATESERIES(_today - 3, _today)
+        ),
+
+        -- Last 7 Days (including today)
+        GENERATE(
+            SELECTCOLUMNS({"Last 7 Days"}, "View", [Value], "Order", 4),
+            GENERATESERIES(_today - 7, _today)
+        ),
+
+        -- Last 30 Days (including today)
+        GENERATE(
+            SELECTCOLUMNS({"Last 30 Days"}, "View", [Value], "Order", 5),
+            GENERATESERIES(_today - 30, _today)
+        ),
+
+        -- Last 90 Days (including today)
+        GENERATE(
+            SELECTCOLUMNS({"Last 90 Days"}, "View", [Value], "Order", 6),
+            GENERATESERIES(_today - 90, _today)
+        ),
+
+        -- Week to Date (Sun -> Today)
+        GENERATE(
+            SELECTCOLUMNS({"Week to Date"}, "View", [Value], "Order", 7),
+            GENERATESERIES(currentWeekStart, _today)
+        ),
+
+        -- This Week (Sun -> Sat)
+        GENERATE(
+            SELECTCOLUMNS({"This Week"}, "View", [Value], "Order", 8),
+            GENERATESERIES(currentWeekStart, currentWeekEnd)
+        ),
+
+        -- Last Week (Sun -> Sat)
+        GENERATE(
+            SELECTCOLUMNS({"Last Week"}, "View", [Value], "Order", 9),
+            GENERATESERIES(lastWeekStart, lastWeekEnd)
+        ),
+
+        -- Month to Date (1st -> Today)
+        GENERATE(
+            SELECTCOLUMNS({"Month to Date"}, "View", [Value], "Order", 10),
+            GENERATESERIES(thisMonthStart, _today)
+        ),
+
+        -- This Month (1st -> EOM)
+        GENERATE(
+            SELECTCOLUMNS({"This Month"}, "View", [Value], "Order", 11),
+            GENERATESERIES(thisMonthStart, thisMonthEnd)
+        ),
+
+        -- Last Month (1st -> EOM)
+        GENERATE(
+            SELECTCOLUMNS({"Last Month"}, "View", [Value], "Order", 12),
+            GENERATESERIES(lastMonthStart, lastMonthEnd)
+        ),
+
+        -- This Quarter (Fiscal)
+        GENERATE(
+            SELECTCOLUMNS({"This Quarter"}, "View", [Value], "Order", 13),
+            GENERATESERIES(thisQuarterStart, thisQuarterEnd)
+        ),
+
+        -- Last Quarter (Fiscal)
+        GENERATE(
+            SELECTCOLUMNS({"Last Quarter"}, "View", [Value], "Order", 14),
+            GENERATESERIES(lastQuarterStart, lastQuarterEnd)
+        ),
+
+        -- Season to Date (Fiscal YTD) (including today)
+        GENERATE(
+            SELECTCOLUMNS({"Season to Date"}, "View", [Value], "Order", 15),
+            GENERATESERIES(fiscalStartCurrent, _today)
+        ),
+
+        -- Previous Season (full fiscal year prior)
+        GENERATE(
+            SELECTCOLUMNS({"Previous Season"}, "View", [Value], "Order", 16),
+            GENERATESERIES(fiscalStartPrevious, fiscalEndPrevious)
+        ),
+
+        -- All Dates
+        GENERATE(
+            SELECTCOLUMNS({"All"}, "View", [Value], "Order", 17),
+            GENERATESERIES(allStartDate, _today)
+        )
+    ),
+    "Date", [Value],
+    "Period", [View],
+    "Order", [Order]
+)
+
