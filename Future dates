@@ -1,0 +1,70 @@
+-- creates selectors for future dates in PBI
+
+dateView_Future = 
+VAR _timestamp = MIN(md_ReportDates[timestamp])
+VAR _year = YEAR(_timestamp)
+VAR _month = MONTH(_timestamp)
+VAR _day = DAY(_timestamp)
+VAR _now = DATE(_year,_month,_day)
+ 
+VAR fiscalStartCurrent =
+IF(
+    _month < 8,
+    DATE(_year - 1, 8, 1),
+    DATE(_year, 8, 1)
+)
+ 
+VAR fiscalStartPrevious =
+IF(
+    _month < 8,
+    DATE(_year - 2, 8, 1),
+    DATE(_year - 1, 8, 1)
+)
+ 
+VAR fiscalEndPrevious =
+IF(
+    _month < 8,
+    DATE(_year - 1, 7, 31),
+    DATE(_year, 7, 31)
+)
+ 
+VAR allStartDate = DATE((MIN(md_DateTable[Year])), 8, 1) // Setting the start date for the 'All' view as the MIN FY Start date for md_DateTable
+ 
+RETURN
+SELECTCOLUMNS(
+    UNION(
+        // Overdue
+        GENERATE(
+            SELECTCOLUMNS({"Overdue"}, "View", [Value], "Order", 1),
+            GENERATESERIES(DATE(_year - 5, 1, 1), _now - 1)
+        ),
+        // Due Today
+        GENERATE(
+            SELECTCOLUMNS({"Due Today"}, "View", [Value], "Order", 2),
+            GENERATESERIES(_now, _now)
+        ),
+        // Due Next 7 Days
+        GENERATE(
+            SELECTCOLUMNS({"Due Next 7 Days"}, "View", [Value], "Order", 3),
+            GENERATESERIES(_now, _now + 7)
+        ),
+        // Due Next 30 Days
+        GENERATE(
+            SELECTCOLUMNS({"Due Next 30 Days"}, "View", [Value], "Order", 4),
+            GENERATESERIES(_now, _now + 30)
+        ),
+        // Due Next 90 Days
+        GENERATE(
+            SELECTCOLUMNS({"Due Next 90 Days"}, "View", [Value], "Order", 5),
+            GENERATESERIES(_now, _now + 90)
+        ),
+        // All Open (adjusted to start from allStartDate)
+        GENERATE(
+            SELECTCOLUMNS({"All"}, "View", [Value], "Order", 6),
+            GENERATESERIES(allStartDate, _now + 365*10) // Setting a wide future range
+        )
+    ),
+    "Date", [Value],
+    "Period", [View],
+    "Order", [Order]
+)
