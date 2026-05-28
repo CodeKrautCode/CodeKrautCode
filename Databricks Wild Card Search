@@ -1,0 +1,13 @@
+--this code allows you to search across an entire table for a specific value.
+-- Useful if you don't know which column that value might be in.
+
+%sql
+SELECT *
+FROM (
+    SELECT 
+        *,
+        concat_ws(' | ', *) AS search_blob
+    FROM MY_TABLE
+) t
+WHERE search_blob ILIKE '%search term%'
+LIMIT 5
