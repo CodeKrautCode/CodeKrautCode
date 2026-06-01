@@ -1,0 +1,23 @@
+--From here:  https://www.bing.com/search?pglt=899&q=youtube+make+this+creative+%26+insightful+line+chart+in+power+bi&cvid=bfe65736962842a5bff80db9eaf7653c&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOTIGCAEQRRhAMgcIAhDrBxhA0gEJMTM2NjhqMGo3qAIAsAIA&FORM=ANSPA1&PC=LCTS&source=chrome.ob
+
+--1.  Slicers:  1.  time intelligence 2. 
+--2. Error bars & constant line
+--3. Markers to highlight selected points on x-axis plus growth rate between points
+--4.  Separate, nonlinked, calendar for sorting:
+--Calendar2=
+--Var caltable=calendarauto()
+--VAR MyCal
+--Addcolumns(
+--caltable,
+--"Sorting", Year([date])&unichar(MOnth([date])+64),
+--"year mon", format([date]), "mmm-yyyy")
+--)
+--return
+--MyCal
+--5.  Parameter table 1-12 for previous months:  use this for the select #months to look back, make it a slicer
+--PeriodRange=Generateseries(1,12,1)
+--6.  DAX for error bars
+--7.  constant line to connect error bars
+--8. Markers with values at start and end point
+--9.  Custom data labels on top of the chart 
+--10.  Custom formatting red: deline green: growth
