@@ -120,3 +120,472 @@ CALCULATE (
 )
 
 --20.
+Sparkline Min Actual = 
+CALCULATE (
+    MIN ( 'SVG Sample Data'[Actual Value] ),
+    ALLSELECTED ( 'SVG Sample Data'[Date] )
+)
+
+--21.
+SVG Actual vs Target = 
+VAR Actual = MIN( 1, MAX( 0, [Actual_Value] ) )
+VAR Target = MIN( 1, MAX( 0, [Target_Value] ) )
+VAR ActualW = ROUND( Actual * 150, 0 )
+VAR TargetW = ROUND( Target * 150, 0 )
+VAR ActualLabel = FORMAT( Actual, "0%" )
+VAR TargetLabel = FORMAT( Target, "0%" )
+VAR ActualColor = [KPI Colour]
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='260' height='78' viewBox='0 0 260 78'>" &
+    
+    "<text x='6' y='16' font-family='Segoe UI' font-size='20' font-weight='600' fill='#555555'>Actual</text>" &
+    "<text x='248' y='16' text-anchor='end' font-family='Segoe UI' font-size='20' font-weight='700' fill='#333333'>" & ActualLabel & "</text>" &
+    "<rect x='60' y='8' width='150' height='12' rx='6' ry='6' fill='#E9ECEF'/>" &
+    "<rect x='60' y='8' width='" & ActualW & "' height='12' rx='6' ry='6' fill='" & ActualColor & "'/>" &
+    
+    "<text x='6' y='50' font-family='Segoe UI' font-size='24' font-weight='600' fill='#555555'>Target</text>" &
+    "<text x='248' y='50' text-anchor='end' font-family='Segoe UI' font-size='24' font-weight='700' fill='#333333'>" & TargetLabel & "</text>" &
+    "<rect x='60' y='42' width='150' height='12' rx='6' ry='6' fill='#E9ECEF'/>" &
+    "<rect x='60' y='42' width='" & TargetW & "' height='12' rx='6' ry='6' fill='#9E9E9E'/>" &
+    
+    "</svg>"
+RETURN
+    Svg
+
+--22.
+SVG KPI Badge = 
+VAR Metric = [Metric Label]
+VAR Actual = [Actual Label]
+VAR Target = [Target Label]
+VAR StatusValue = [KPI Status]
+VAR Border = [KPI Colour]
+VAR Fill = "#FFFFFF"
+VAR StatusFill = [KPI Fill Colour]
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='260' height='74' viewBox='0 0 260 74'>" &
+    "<rect x='1' y='1' width='258' height='72' rx='12' ry='12' fill='" & Fill & "' stroke='#D9D9D9' stroke-width='1'/>" &
+    "<text x='14' y='22' font-family='Segoe UI' font-size='12' font-weight='600' fill='#444444'>" & Metric & "</text>" &
+    "<text x='14' y='49' font-family='Segoe UI' font-size='24' font-weight='700' fill='" & Border & "'>" & Actual & "</text>" &
+    "<text x='14' y='65' font-family='Segoe UI' font-size='11' fill='#666666'>Target " & Target & "</text>" &
+    "<rect x='172' y='16' width='74' height='22' rx='11' ry='11' fill='" & StatusFill & "' stroke='" & Border & "' stroke-width='1'/>" &
+    "<text x='209' y='31' text-anchor='middle' font-family='Segoe UI' font-size='10' font-weight='700' fill='" & Border & "'>" & StatusValue & "</text>" &
+    "</svg>"
+RETURN
+    Svg
+
+--23.
+SVG Metric Summary Tile = 
+VAR Metric = [Metric Label]
+VAR GroupName = [Group Label]
+VAR Actual = [Actual Label]
+VAR VarianceLabel = [Variance Label]
+VAR StatusLabel = [KPI Status]
+VAR Accent = [KPI Colour]
+VAR Fill = "#FFFFFF"
+VAR VarianceColor = [Variance Colour]
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90' viewBox='0 0 300 90'>" &
+    "<rect x='1' y='1' width='298' height='88' rx='14' ry='14' fill='" & Fill & "' stroke='#D9D9D9' stroke-width='1'/>" &
+    "<rect x='1' y='1' width='8' height='88' rx='4' ry='4' fill='" & Accent & "'/>" &
+    "<text x='20' y='22' font-family='Segoe UI' font-size='11' font-weight='700' fill='#666666'>" & GroupName & "</text>" &
+    "<text x='20' y='40' font-family='Segoe UI' font-size='14' font-weight='600' fill='#333333'>" & Metric & "</text>" &
+    "<text x='20' y='72' font-family='Segoe UI' font-size='28' font-weight='700' fill='" & Accent & "'>" & Actual & "</text>" &
+    "<text x='220' y='35' text-anchor='middle' font-family='Segoe UI' font-size='11' fill='#666666'>Status</text>" &
+    "<text x='220' y='52' text-anchor='middle' font-family='Segoe UI' font-size='12' font-weight='700' fill='" & Accent & "'>" & StatusLabel & "</text>" &
+    "<text x='220' y='72' text-anchor='middle' font-family='Segoe UI' font-size='12' font-weight='700' fill='" & VarianceColor & "'>" & VarianceLabel & "</text>" &
+    "</svg>"
+RETURN
+    Svg
+
+--24.
+SVG Progress Bar = 
+VAR Pct = MIN( 1, MAX( 0, DIVIDE( [Actual_Value], [Target_Value] ) ) )
+VAR PctLabel = FORMAT( Pct, "0%" )
+VAR FillColor =
+    SWITCH(
+        TRUE(),
+        Pct >= 1, "#2E7D32",
+        Pct >= 0.95, "#F9A825",
+        "#C62828"
+    )
+VAR WidthPx = FORMAT( ROUND( Pct * 180, 0 ), "0" )
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='260' height='28' viewBox='0 0 260 28'>" &
+    "<rect x='0' y='6' rx='8' ry='8' width='180' height='16' fill='#E9ECEF'/>" &
+    "<rect x='0' y='6' rx='8' ry='8' width='" & WidthPx & "' height='16' fill='" & FillColor & "'/>" &
+    "<text x='190' y='19' font-family='Segoe UI' font-size='24' font-weight='600' fill='#333333'>" & PctLabel & "</text>" &
+    "</svg>"
+RETURN
+    Svg
+
+-25.
+SVG Sparkline = 
+VAR ChartWidth = 140
+VAR ChartHeight = 36
+VAR PaddingLeft = 4
+VAR PaddingRight = 4
+VAR PaddingTop = 4
+VAR PaddingBottom = 4
+VAR PlotWidth = ChartWidth - PaddingLeft - PaddingRight
+VAR PlotHeight = ChartHeight - PaddingTop - PaddingBottom
+
+VAR MinDate =
+    CALCULATE (
+        MIN ( 'SVG Sample Data'[Date] ),
+        ALLSELECTED ( 'SVG Sample Data'[Date] )
+    )
+VAR MaxDate =
+    CALCULATE (
+        MAX ( 'SVG Sample Data'[Date] ),
+        ALLSELECTED ( 'SVG Sample Data'[Date] )
+    )
+VAR MinValue = [Sparkline Min Actual]
+VAR MaxValue = [Sparkline Max Actual]
+VAR ValueRange =
+    IF ( MaxValue - MinValue = 0, 0.0001, MaxValue - MinValue )
+VAR DateRange =
+    IF ( MaxDate = MinDate, 1, MaxDate - MinDate )
+
+VAR SparkTable =
+    ADDCOLUMNS (
+        SUMMARIZE (
+            CALCULATETABLE (
+                'SVG Sample Data',
+                ALLSELECTED ( 'SVG Sample Data'[Date] )
+            ),
+            'SVG Sample Data'[Date]
+        ),
+        "X",
+            PaddingLeft
+                + DIVIDE ( 'SVG Sample Data'[Date] - MinDate, DateRange ) * PlotWidth,
+        "Y",
+            PaddingTop
+                + ( 1 - DIVIDE (
+                    CALCULATE ( AVERAGE ( 'SVG Sample Data'[Actual Value] ) ) - MinValue,
+                    ValueRange
+                ) ) * PlotHeight
+    )
+
+VAR PointList =
+    CONCATENATEX (
+        SparkTable,
+        FORMAT ( [X], "0.0" ) & "," & FORMAT ( [Y], "0.0" ),
+        " ",
+        'SVG Sample Data'[Date],
+        ASC
+    )
+
+VAR EndX =
+    MAXX ( SparkTable, [X] )
+VAR EndY =
+    MAXX (
+        FILTER ( SparkTable, 'SVG Sample Data'[Date] = MaxDate ),
+        [Y]
+    )
+
+VAR LineColor = [KPI Colour]
+
+RETURN
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='" & ChartWidth & "' height='" & ChartHeight & "' viewBox='0 0 " & ChartWidth & " " & ChartHeight & "'>" &
+    "<polyline fill='none' stroke='" & LineColor & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' points='" & PointList & "'/>" &
+    "<circle cx='" & FORMAT ( EndX, "0.0" ) & "' cy='" & FORMAT ( EndY, "0.0" ) & "' r='2.8' fill='" & LineColor & "'/>" &
+    "</svg>"
+
+--26.
+SVG Sparkline with End Label = 
+VAR ChartWidth = 180
+VAR ChartHeight = 42
+VAR PaddingLeft = 4
+VAR PaddingRight = 46
+VAR PaddingTop = 4
+VAR PaddingBottom = 4
+VAR PlotWidth = ChartWidth - PaddingLeft - PaddingRight
+VAR PlotHeight = ChartHeight - PaddingTop - PaddingBottom
+
+VAR MinDate =
+    CALCULATE (
+        MIN ( 'SVG Sample Data'[Date] ),
+        ALLSELECTED ( 'SVG Sample Data'[Date] )
+    )
+VAR MaxDate =
+    CALCULATE (
+        MAX ( 'SVG Sample Data'[Date] ),
+        ALLSELECTED ( 'SVG Sample Data'[Date] )
+    )
+VAR MinValue = [Sparkline Min Actual]
+VAR MaxValue = [Sparkline Max Actual]
+VAR ValueRange =
+    IF ( MaxValue - MinValue = 0, 0.0001, MaxValue - MinValue )
+VAR DateRange =
+    IF ( MaxDate = MinDate, 1, MaxDate - MinDate )
+
+VAR SparkTable =
+    ADDCOLUMNS (
+        SUMMARIZE (
+            CALCULATETABLE (
+                'SVG Sample Data',
+                ALLSELECTED ( 'SVG Sample Data'[Date] )
+            ),
+            'SVG Sample Data'[Date]
+        ),
+        "X",
+            PaddingLeft
+                + DIVIDE ( 'SVG Sample Data'[Date] - MinDate, DateRange ) * PlotWidth,
+        "Y",
+            PaddingTop
+                + ( 1 - DIVIDE (
+                    CALCULATE ( AVERAGE ( 'SVG Sample Data'[Actual Value] ) ) - MinValue,
+                    ValueRange
+                ) ) * PlotHeight
+    )
+
+VAR PointList =
+    CONCATENATEX (
+        SparkTable,
+        FORMAT ( [X], "0.0" ) & "," & FORMAT ( [Y], "0.0" ),
+        " ",
+        'SVG Sample Data'[Date],
+        ASC
+    )
+
+VAR EndX =
+    MAXX ( SparkTable, [X] )
+VAR EndY =
+    MAXX (
+        FILTER ( SparkTable, 'SVG Sample Data'[Date] = MaxDate ),
+        [Y]
+    )
+
+VAR EndLabel = FORMAT ( [Actual_Value], "0%" )
+VAR LineColor = [KPI Colour]
+
+RETURN
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='" & ChartWidth & "' height='" & ChartHeight & "' viewBox='0 0 " & ChartWidth & " " & ChartHeight & "'>" &
+    "<polyline fill='none' stroke='" & LineColor & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' points='" & PointList & "'/>" &
+    "<circle cx='" & FORMAT ( EndX, "0.0" ) & "' cy='" & FORMAT ( EndY, "0.0" ) & "' r='2.8' fill='" & LineColor & "'/>" &
+    "<text x='" & ChartWidth - 4 & "' y='" & FORMAT ( EndY + 4, "0.0" ) & "' text-anchor='end' font-family='Segoe UI' font-size='16' font-weight='700' fill='" & LineColor & "'>" & EndLabel & "</text>" &
+    "</svg>"
+
+--27.
+SVG Sparkline with Target = 
+VAR ChartWidth = 150
+VAR ChartHeight = 40
+VAR PaddingLeft = 4
+VAR PaddingRight = 4
+VAR PaddingTop = 4
+VAR PaddingBottom = 4
+VAR PlotWidth = ChartWidth - PaddingLeft - PaddingRight
+VAR PlotHeight = ChartHeight - PaddingTop - PaddingBottom
+
+VAR MinDate =
+    CALCULATE (
+        MIN ( 'SVG Sample Data'[Date] ),
+        ALLSELECTED ( 'SVG Sample Data'[Date] )
+    )
+VAR MaxDate =
+    CALCULATE (
+        MAX ( 'SVG Sample Data'[Date] ),
+        ALLSELECTED ( 'SVG Sample Data'[Date] )
+    )
+VAR MinValue = [Sparkline Min Actual]
+VAR MaxValue = [Sparkline Max Actual]
+VAR TargetValue = [Target_Value]
+VAR ValueRange =
+    IF ( MaxValue - MinValue = 0, 0.0001, MaxValue - MinValue )
+VAR DateRange =
+    IF ( MaxDate = MinDate, 1, MaxDate - MinDate )
+
+VAR SparkTable =
+    ADDCOLUMNS (
+        SUMMARIZE (
+            CALCULATETABLE (
+                'SVG Sample Data',
+                ALLSELECTED ( 'SVG Sample Data'[Date] )
+            ),
+            'SVG Sample Data'[Date]
+        ),
+        "ActualY",
+            PaddingTop
+                + ( 1 - DIVIDE (
+                    CALCULATE ( AVERAGE ( 'SVG Sample Data'[Actual Value] ) ) - MinValue,
+                    ValueRange
+                ) ) * PlotHeight,
+        "X",
+            PaddingLeft
+                + DIVIDE ( 'SVG Sample Data'[Date] - MinDate, DateRange ) * PlotWidth
+    )
+
+VAR PointList =
+    CONCATENATEX (
+        SparkTable,
+        FORMAT ( [X], "0.0" ) & "," & FORMAT ( [ActualY], "0.0" ),
+        " ",
+        'SVG Sample Data'[Date],
+        ASC
+    )
+
+VAR EndX = MAXX ( SparkTable, [X] )
+VAR EndY =
+    MAXX (
+        FILTER ( SparkTable, 'SVG Sample Data'[Date] = MaxDate ),
+        [ActualY]
+    )
+
+VAR TargetY =
+    PaddingTop
+        + ( 1 - DIVIDE ( TargetValue - MinValue, ValueRange ) ) * PlotHeight
+
+VAR LineColor = [KPI Colour]
+
+RETURN
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='" & ChartWidth & "' height='" & ChartHeight & "' viewBox='0 0 " & ChartWidth & " " & ChartHeight & "'>" &
+    "<line x1='" & PaddingLeft & "' y1='" & FORMAT ( TargetY, "0.0" ) & "' x2='" & ChartWidth - PaddingRight & "' y2='" & FORMAT ( TargetY, "0.0" ) & "' stroke='#9E9E9E' stroke-width='1.2' stroke-dasharray='4,2'/>" &
+    "<polyline fill='none' stroke='" & LineColor & "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' points='" & PointList & "'/>" &
+    "<circle cx='" & FORMAT ( EndX, "0.0" ) & "' cy='" & FORMAT ( EndY, "0.0" ) & "' r='2.8' fill='" & LineColor & "'/>" &
+    "</svg>"
+
+--28.
+SVG Status Chip = 
+VAR StatusValue = [KPI Status]
+VAR FillColor = [KPI Fill Colour]
+VAR StrokeColor = [KPI Colour]
+VAR LabelText = COALESCE(StatusValue, "No Data")
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='300' height='80' viewBox='0 0 140 32'>" &
+    "<rect x='1' y='1' rx='16' ry='16' width='138' height='30' fill='" & FillColor & "' stroke='" & StrokeColor & "' stroke-width='1'/>" &
+    "<circle cx='18' cy='16' r='5' fill='" & StrokeColor & "'/>" &
+    "<text x='32' y='21' font-family='Segoe UI' font-size='13' font-weight='600' fill='" & StrokeColor & "'>" & LabelText & "</text>" &
+    "</svg>"
+RETURN
+    Svg
+
+--29.
+SVG Threshold Bar = 
+VAR Actual = MIN( 1, MAX( 0, [Actual_Value] ) )
+VAR Green = MIN( 1, MAX( 0, [Green_Threshold] ) )
+VAR Amber = MIN( 1, MAX( 0, [Amber_Threshold] ) )
+VAR MarkerX = FORMAT( ROUND( Actual * 200, 0 ), "0" )
+VAR AmberX = FORMAT( ROUND( Amber * 200, 0 ), "0" )
+VAR GreenX = FORMAT( ROUND( Green * 200, 0 ), "0" )
+VAR ActualLabel = FORMAT( Actual, "0.0%" )
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='42' viewBox='0 0 240 42'>" &
+    "<rect x='10' y='16' width='" & AmberX & "' height='10' fill='#F8D7DA' rx='5' ry='5'/>" &
+    "<rect x='" & 10 + VALUE(AmberX) & "' y='16' width='" & VALUE(GreenX) - VALUE(AmberX) & "' height='10' fill='#FFF1CC'/>" &
+    "<rect x='" & 10 + VALUE(GreenX) & "' y='16' width='" & 200 - VALUE(GreenX) & "' height='10' fill='#D9F2E3' rx='5' ry='5'/>" &
+    "<line x1='" & 10 + VALUE(MarkerX) & "' y1='10' x2='" & 10 + VALUE(MarkerX) & "' y2='31' stroke='#222222' stroke-width='3'/>" &
+    "<text x='" & 10 + VALUE(MarkerX) & "' y='9' text-anchor='middle' font-family='Segoe UI' font-size='11' font-weight='700' fill='#222222'>" & ActualLabel & "</text>" &
+    "</svg>"
+RETURN
+    Svg
+
+--30.
+SVG Traffic Light = 
+VAR StatusValue = [KPI Status]
+VAR RedFill = IF( StatusValue = "Off Track", "#C62828", "#E0E0E0" )
+VAR AmberFill = IF( StatusValue = "Watch", "#F9A825", "#E0E0E0" )
+VAR GreenFill = IF( StatusValue = "On Track", "#2E7D32", "#E0E0E0" )
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='300' height='80' viewBox='0 0 84 24'>" &
+    "<circle cx='12' cy='12' r='8' fill='" & RedFill & "' stroke='#999999' stroke-width='1'/>" &
+    "<circle cx='42' cy='12' r='8' fill='" & AmberFill & "' stroke='#999999' stroke-width='1'/>" &
+    "<circle cx='72' cy='12' r='8' fill='" & GreenFill & "' stroke='#999999' stroke-width='1'/>" &
+    "</svg>"
+RETURN
+    Svg
+
+--31.
+SVG Variance Arrow = 
+VAR VarPct = [Variance_%]
+VAR Color = [Variance Colour]
+VAR Arrow =
+    SWITCH(
+        TRUE(),
+        ISBLANK(VarPct), "●",
+        VarPct > 0, "▲",
+        VarPct < 0, "▼",
+        "●"
+    )
+VAR Label = FORMAT( VarPct, "+0.0%;-0.0%;0.0%" )
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='90' height='28' viewBox='0 0 90 28'>" &
+    "<text x='10' y='19' font-family='Segoe UI Symbol, Segoe UI' font-size='16' font-weight='700' fill='" & Color & "'>" & Arrow & "</text>" &
+    "<text x='28' y='19' font-family='Segoe UI' font-size='12' font-weight='700' fill='" & Color & "'>" & Label & "</text>" &
+    "</svg>"
+RETURN
+    Svg
+
+--32.
+SVG Variance Pill = 
+VAR Arrow = [Variance Direction Symbol]
+VAR Color = [Variance Colour]
+VAR Fill = [Variance Fill Colour]
+VAR Label = Arrow & " " & FORMAT( [Variance_%], "+0.0%;-0.0%;0.0%" )
+VAR Svg =
+    "data:image/svg+xml;utf8," &
+    "<svg xmlns='http://www.w3.org/2000/svg' width='300' height='80' viewBox='0 0 125 30'>" &
+    "<rect x='1' y='1' rx='15' ry='15' width='123' height='28' fill='" & Fill & "' stroke='" & Color & "' stroke-width='1'/>" &
+    "<text x='62.5' y='20' text-anchor='middle' font-family='Segoe UI' font-size='12' font-weight='700' fill='" & Color & "'>" & Label & "</text>" &
+    "</svg>"
+RETURN
+    Svg
+
+--33.
+Target Label = 
+FORMAT ( [Target_Value], "0.0%" )
+
+--34.
+Target_Value = AVERAGE ( 'SVG Sample Data'[Target Value] )
+
+--35.
+Variance Colour = 
+SWITCH(
+    TRUE(),
+    ISBLANK([Variance_%]), "#6C757D",
+    [Variance_%] > 0, "#2E7D32",
+    [Variance_%] < 0, "#C62828",
+    "#6C757D"
+)
+
+--36.
+Variance Direction Symbol = 
+SWITCH(
+    TRUE(),
+    ISBLANK([Variance_%]), "",
+    [Variance_%] > 0, "▲",
+    [Variance_%] < 0, "▼",
+    "●"
+)
+
+--37.
+Variance Fill Colour = 
+SWITCH(
+    TRUE(),
+    ISBLANK([Variance_%]), "#E9ECEF",
+    [Variance_%] > 0, "#D9F2E3",
+    [Variance_%] < 0, "#F8D7DA",
+    "#E9ECEF"
+)
+
+--38.
+Variance Label = 
+FORMAT ( [Variance_%], "+0.0%;-0.0%;0.0%" )
+
+--39.
+Variance_ = [Actual_Value] - [Target_Value]
+
+--40.
+Variance_% = 
+DIVIDE ( [Variance_], [Target_Value] )
+
