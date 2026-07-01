@@ -1,5 +1,5 @@
 --Measures for SVG
-
+--Use these in tables and matrices in PBI
 --1.
 Actual Label = 
 FORMAT ( [Actual_Value], "0.0%" )
