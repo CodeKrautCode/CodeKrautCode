@@ -1,4 +1,4 @@
--- Sample dat for SVG work
+-- Sample data for SVG work
 SVG Sample Data = 
 VAR BaseDates =
     CALENDAR ( DATE ( 2026, 1, 1 ), DATE ( 2026, 3, 31 ) )
