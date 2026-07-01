@@ -1,0 +1,122 @@
+--Measures for SVG
+
+--1.
+Actual Label = 
+FORMAT ( [Actual_Value], "0.0%" )
+
+--2.
+Actual_Value = AVERAGE ( 'SVG Sample Data'[Actual Value] )
+
+--3.
+Amber_Threshold = AVERAGE ( 'SVG Sample Data'[Amber Threshold] )
+
+--4.
+Day_Change_Pct = 
+DIVIDE ( [Actual_Value] - [Prior_Value], [Prior_Value] )
+
+--5.
+Department_Label = 
+SELECTEDVALUE ( 'SVG Sample Data'[Department], "Department" )
+
+--6.
+Dynamic KPI Title = 
+[Metric Label] & " | " & [Site Label]
+
+--7.
+Green_Threshold = AVERAGE ( 'SVG Sample Data'[Green Threshold] )
+
+--8.
+Group Label = 
+SELECTEDVALUE ( 'SVG Sample Data'[Metric Group], "Group" )
+
+--9.
+KPI Colour = 
+SWITCH(
+    [KPI Status],
+    "On Track", "#2E7D32",
+    "Watch", "#C77700",
+    "Off Track", "#B71C1C",
+    "No Data", "#6C757D",
+    "#6C757D"
+)
+
+--10.
+KPI Colour 1 = 
+SWITCH(
+    [KPI Status],
+    "On Track", "#34D399",
+    "Watch", "#F59E0B",
+    "Off Track", "#F43F5E",
+    "No Data", "#94A3B8",
+    "#94A3B8"
+)
+
+--11.
+KPI Colour 2 = 
+SWITCH(
+    [KPI Status],
+    "On Track", "#38BDF8",
+    "Watch", "#FB7185",
+    "Off Track", "#F97316",
+    "No Data", "#CBD5E1",
+    "#CBD5E1"
+)
+
+--12.
+KPI Fill Colour = 
+SWITCH(
+    [KPI Status],
+    "On Track", "#D9F2E3",
+    "Watch", "#FFF1CC",
+    "Off Track", "#F8D7DA",
+    "No Data", "#E9ECEF",
+    "#E9ECEF"
+)
+
+--13.
+KPI Status = 
+SWITCH(
+    TRUE(),
+    ISBLANK([Actual_Value]), "No Data",
+    [Actual_Value] >= [Green_Threshold], "On Track",
+    [Actual_Value] >= [Amber_Threshold], "Watch",
+    "Off Track"
+)
+
+--14.
+KPI Status Sort = 
+SWITCH(
+    [KPI Status],
+    "Off Track", 1,
+    "Watch", 2,
+    "On Track", 3,
+    "No Data", 4,
+    99
+)
+
+--15.
+Metric Label = 
+SELECTEDVALUE ( 'SVG Sample Data'[Metric Name], "Metric" )
+
+--16.
+Prior_Value = AVERAGE ( 'SVG Sample Data'[Prior Value] )
+
+--17.
+Selected Date Range Label = 
+VAR MinDate = MIN ( 'SVG Sample Data'[Date] )
+VAR MaxDate = MAX ( 'SVG Sample Data'[Date] )
+RETURN
+FORMAT ( MinDate, "d mmm yyyy" ) & " - " & FORMAT ( MaxDate, "d mmm yyyy" )
+
+--18.
+Site Label = 
+SELECTEDVALUE ( 'SVG Sample Data'[Site], "Site" )
+
+--19.
+Sparkline Max Actual = 
+CALCULATE (
+    MAX ( 'SVG Sample Data'[Actual Value] ),
+    ALLSELECTED ( 'SVG Sample Data'[Date] )
+)
+
+--20.
