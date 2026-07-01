@@ -1,0 +1,99 @@
+-- Sample dat for SVG work
+SVG Sample Data = 
+VAR BaseDates =
+    CALENDAR ( DATE ( 2026, 1, 1 ), DATE ( 2026, 3, 31 ) )
+VAR Metrics =
+    DATATABLE (
+        "Site", STRING,
+        "Department", STRING,
+        "Metric Group", STRING,
+        "Metric Name", STRING,
+        "BaseActual", DOUBLE,
+        "TargetValue", DOUBLE,
+        "GreenThreshold", DOUBLE,
+        "AmberThreshold", DOUBLE,
+        "DisplayOrder", INTEGER,
+        {
+            { "Edendale", "Powder 2", "Safety",   "Safety Observations Closed", 0.90, 0.95, 0.95, 0.90, 1 },
+            { "Edendale", "Powder 2", "People",   "Training Compliance",        0.92, 0.98, 0.95, 0.90, 2 },
+            { "Edendale", "Powder 2", "Quality",  "Right First Time",           0.95, 0.97, 0.95, 0.90, 3 },
+            { "Edendale", "Powder 2", "Delivery", "Schedule Attainment",        0.87, 0.95, 0.95, 0.90, 4 },
+            { "Edendale", "Powder 2", "Cost",     "Energy Efficiency",          0.83, 0.90, 0.95, 0.90, 5 },
+
+            { "Edendale", "Powder 4", "Safety",   "Safety Observations Closed", 0.88, 0.95, 0.95, 0.90, 1 },
+            { "Edendale", "Powder 4", "People",   "Training Compliance",        0.93, 0.98, 0.95, 0.90, 2 },
+            { "Edendale", "Powder 4", "Quality",  "Right First Time",           0.91, 0.97, 0.95, 0.90, 3 },
+            { "Edendale", "Powder 4", "Delivery", "Schedule Attainment",        0.89, 0.95, 0.95, 0.90, 4 },
+            { "Edendale", "Powder 4", "Cost",     "Energy Efficiency",          0.85, 0.90, 0.95, 0.90, 5 },
+
+            { "Clandeboye", "Butter",   "Safety",   "Safety Observations Closed", 0.91, 0.95, 0.95, 0.90, 1 },
+            { "Clandeboye", "Butter",   "People",   "Training Compliance",        0.94, 0.98, 0.95, 0.90, 2 },
+            { "Clandeboye", "Butter",   "Quality",  "Right First Time",           0.93, 0.97, 0.95, 0.90, 3 },
+            { "Clandeboye", "Butter",   "Delivery", "Schedule Attainment",        0.90, 0.95, 0.95, 0.90, 4 },
+            { "Clandeboye", "Butter",   "Cost",     "Energy Efficiency",          0.86, 0.90, 0.95, 0.90, 5 },
+
+            { "Clandeboye", "Powder 3", "Safety",   "Safety Observations Closed", 0.87, 0.95, 0.95, 0.90, 1 },
+            { "Clandeboye", "Powder 3", "People",   "Training Compliance",        0.91, 0.98, 0.95, 0.90, 2 },
+            { "Clandeboye", "Powder 3", "Quality",  "Right First Time",           0.94, 0.97, 0.95, 0.90, 3 },
+            { "Clandeboye", "Powder 3", "Delivery", "Schedule Attainment",        0.88, 0.95, 0.95, 0.90, 4 },
+            { "Clandeboye", "Powder 3", "Cost",     "Energy Efficiency",          0.84, 0.90, 0.95, 0.90, 5 },
+
+            { "Whareroa", "Casein", "Safety",   "Safety Observations Closed", 0.89, 0.95, 0.95, 0.90, 1 },
+            { "Whareroa", "Casein", "People",   "Training Compliance",        0.90, 0.98, 0.95, 0.90, 2 },
+            { "Whareroa", "Casein", "Quality",  "Right First Time",           0.92, 0.97, 0.95, 0.90, 3 },
+            { "Whareroa", "Casein", "Delivery", "Schedule Attainment",        0.86, 0.95, 0.95, 0.90, 4 },
+            { "Whareroa", "Casein", "Cost",     "Energy Efficiency",          0.82, 0.90, 0.95, 0.90, 5 }
+        }
+    )
+RETURN
+    ADDCOLUMNS (
+        CROSSJOIN ( BaseDates, Metrics ),
+        "Actual Value",
+            ROUND (
+                [BaseActual]
+                    + ( SIN ( DAY ( [Date] ) / 3 + [DisplayOrder] * 0.8 ) * 0.06 )
+                    + ( COS ( DAY ( [Date] ) / 8 + [DisplayOrder] * 0.5 ) * 0.04 )
+                    + ( SIN ( MONTH ( [Date] ) * 2 + [DisplayOrder] ) * 0.02 ),
+                3
+            ),
+        "Target Value", [TargetValue],
+        "Green Threshold", [GreenThreshold],
+        "Amber Threshold", [AmberThreshold],
+        "Prior Value",
+            ROUND (
+                [BaseActual]
+                    + ( SIN ( ( DAY ( [Date] ) - 1 ) / 3 + [DisplayOrder] * 0.8 ) * 0.06 )
+                    + ( COS ( ( DAY ( [Date] ) - 1 ) / 8 + [DisplayOrder] * 0.5 ) * 0.04 )
+                    + ( SIN ( MONTH ( [Date] ) * 2 + [DisplayOrder] ) * 0.02 ),
+                3
+            ),
+        "Variance",
+            ROUND (
+                (
+                    ROUND (
+                        [BaseActual]
+                            + ( SIN ( DAY ( [Date] ) / 3 + [DisplayOrder] * 0.8 ) * 0.06 )
+                            + ( COS ( DAY ( [Date] ) / 8 + [DisplayOrder] * 0.5 ) * 0.04 )
+                            + ( SIN ( MONTH ( [Date] ) * 2 + [DisplayOrder] ) * 0.02 ),
+                        3
+                    )
+                ) - [TargetValue],
+                3
+            ),
+        "Variance %",
+            ROUND (
+                DIVIDE (
+                    (
+                        ROUND (
+                            [BaseActual]
+                                + ( SIN ( DAY ( [Date] ) / 3 + [DisplayOrder] * 0.8 ) * 0.06 )
+                                + ( COS ( DAY ( [Date] ) / 8 + [DisplayOrder] * 0.5 ) * 0.04 )
+                                + ( SIN ( MONTH ( [Date] ) * 2 + [DisplayOrder] ) * 0.02 ),
+                            3
+                        )
+                    ) - [TargetValue],
+                    [TargetValue]
+                ),
+                4
+            )
+    )
