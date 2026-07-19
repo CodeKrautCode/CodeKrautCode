@@ -157,3 +157,67 @@ VAR Ref = [Reference Date] RETURN SWITCH(Sel, "Today", Ref,
       "Month", DATE(YEAR(Ref), MONTH(Ref), 1), 
       "Quarter", DATE(YEAR(Ref), ((MONTH(Ref) - 1) - MOD(MONTH(Ref) - 1, 3)) + 1, 1),
       "Year",    DATE(YEAR(Ref), 1, 1),   Ref)
+
+--32.  Previous Week Volume
+Previous Week Patient Volume = 
+VAR Ref = [Reference Date] 
+VAR PrevEnd = Ref - 7 
+VAR PrevStart = Ref - 13 
+RETURN CALCULATE([Total Visits], 
+REMOVEFILTERS(DimDate),   DimDate[Date] >= PrevStart && DimDate[Date] <= PrevEnd)
+
+--33.  Reference Date
+Reference Date = CALCULATE(MAX(DimDate[Date]), ALL(DimDate))
+
+--34.  Week-on Week change in a group
+Region Flow Delta = [Region Visits Week] - [Region Visits Prev Week]
+
+--35.  Status of week-on-week change
+Region Flow Status = VAR D = [Region Flow Delta] 
+RETURN SWITCH(TRUE(), D > 5, "Increased Flow",  D < -5, "Decreased Flow",   "Stable")
+
+--36. Prev week volume in a category
+Region Visits Prev Week = 
+VAR Ref = [Reference Date] 
+VAR PrevEnd = Ref - 7 
+VAR PrevStart = Ref - 13 
+RETURN CALCULATE([Total Visits], 
+REMOVEFILTERS(DimDate),   DimDate[Date] >= PrevStart && DimDate[Date] <= PrevEnd)
+
+--37.  Volume in a week
+Region Visits Week = 
+VAR Ref = [Reference Date] 
+VAR WeekStart = Ref - 6 
+RETURN CALCULATE([Total Visits], 
+REMOVEFILTERS(DimDate),   DimDate[Date] >= WeekStart && DimDate[Date] <= Ref)
+
+--38.  Satisfacation %
+Satisfaction Pct = DIVIDE([Avg Satisfaction], 100)
+
+--39.  Satifaction % in a specific period
+Satisfaction Pct Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+RETURN CALCULATE([Satisfaction Pct], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--40  % Prev Period
+Satisfaction Pct Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+RETURN CALCULATE([Satisfaction Pct], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--41.  % in specific month
+Satisfaction Selected Month = 
+VAR Sel = SELECTEDVALUE(MonthPicker[YearMonth]) 
+RETURN CALCULATE([Satisfaction Pct], 
+REMOVEFILTERS(DimDate), DimDate[YearMonth] = Sel)
+
+--42.   Satisfaction % vs Target
+Satisfaction vs Target = [Satisfaction Pct Period] - [Target Satisfaction]
+
+--43. Dynamic Name of Selected KPI
+Selected KPI Name = SELECTEDVALUE(KPISelector[KPIName], "Patient Volume")
+
+--44. 
