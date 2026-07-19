@@ -1,0 +1,72 @@
+-- Measures to create an org performance report
+
+--1 Reference Date - this is the basis for all time intelligence in this report, and set to TODAY here.
+Reference Date = CALCULATE(MAX(DimDate[Date]), ALL(DimDate))
+
+--2. Active events in time period
+Active Alerts =
+VAR Ref = [Reference Date] 
+RETURN CALCULATE(COUNTROWS(FactActivityLog), 
+REMOVEFILTERS(DimDate), DimDate[Date] = Ref, DimActivityType[Category] = "alert")
+
+--3.  Events TODAY in a given category
+Admin Events Today = 
+VAR Ref = [Reference Date] 
+RETURN CALCULATE(COUNTROWS(FactActivityLog), 
+REMOVEFILTERS(DimDate), DimDate[Date] = Ref, DimActivityType[Category] = "admin")
+
+--4.  Avg duration of event over total time period, with a pre-existing field for duration
+Avg Wait Time = AVERAGE(FactPatientVisit[WaitTimeMinutes])
+
+--5.  Avg duration of event over a specific time period
+Avg Wait Time Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+RETURN CALCULATE([Avg Wait Time], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--6.  Avg duration in a specific month, anchored to a month picker
+Avg Wait Time Selected Month = 
+VAR Sel = SELECTEDVALUE(MonthPicker[YearMonth]) 
+RETURN CALCULATE([Avg Wait Time], 
+REMOVEFILTERS(DimDate), DimDate[YearMonth] = Sel)
+
+--7.  Avg rate over total period
+Bed Occupancy Rate = DIVIDE(SUM(FactBedOccupancy[BedsOccupied]), SUM(FactBedOccupancy[BedsTotal]))
+
+--8.  Avg Rate over a specific period of time
+Bed Occupancy Rate Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+RETURN CALCULATE([Bed Occupancy Rate], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--9.  Avg Rate in a specific month
+Bed Occupancy Selected Month = 
+VAR Sel = SELECTEDVALUE(MonthPicker[YearMonth]) 
+RETURN CALCULATE([Bed Occupancy Rate], 
+REMOVEFILTERS(DimDate), DimDate[YearMonth] = Sel)
+
+--10.  Avg value of a given field
+Avg Satisfaction = AVERAGE(FactPatientVisit[SatisfactionScore])
+
+--11.  Rate vs Target - KPI
+Bed Occupancy vs Target = [Bed Occupancy Rate Period] - [Target Bed Occupancy]
+
+--12.  FORMATTING for failed KPI
+Color Bed Occupancy = IF([Bed Occupancy Rate Period] >= [Target Bed Occupancy], "#16A34A", "#DC2626")
+
+--13.  FORMATTING for failed KPI in a given category
+Color Emergency Wait = IF([Emergency Wait Time Period] <= [Target Emergency Wait], "#16A34A", "#DC2626")
+
+--14.  FORMATTING for achieved KPI
+Color Satisfaction = IF([Satisfaction Pct Period] >= [Target Satisfaction], "#16A34A", "#DC2626")
+
+--15.  FORMATTING for achieved KPI
+Color Staff Efficiency = IF([Staff Efficiency Period] >= [Target Staff Efficiency], "#16A34A", "#DC2626")
+
+--16.  Dynamic Report Subtitle
+Dashboard Subtitle = 
+"CarePulse Operations / " & SELECTEDVALUE(DimDepartment[DepartmentName], "All Departments") 
+      & " / " & SELECTEDVALUE(PeriodPicker[PeriodName], "Today") 
+      & " / Ref date: " & FORMAT([Reference Date], "yyyy-mm-dd")
