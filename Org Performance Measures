@@ -70,3 +70,90 @@ Dashboard Subtitle =
 "CarePulse Operations / " & SELECTEDVALUE(DimDepartment[DepartmentName], "All Departments") 
       & " / " & SELECTEDVALUE(PeriodPicker[PeriodName], "Today") 
       & " / Ref date: " & FORMAT([Reference Date], "yyyy-mm-dd")
+
+--17.  Duration in a specific category
+Emergency Wait Time = 
+CALCULATE([Avg Wait Time], FILTER(ALL(DimDepartment), DimDepartment[DepartmentName] = "Emergency"))
+
+---18.  Duration in a specific category over a specific time period
+Emergency Wait Time Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+RETURN CALCULATE([Emergency Wait Time], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--19.  Duration vs Target
+Emergency Wait vs Target = [Emergency Wait Time Period] - [Target Emergency Wait]
+
+--20.  Rate for a category
+General Ward Occupancy = 
+CALCULATE([Bed Occupancy Rate], 
+FILTER(ALL(DimRegion), 
+DimRegion[RegionName] IN {"General Ward A", "General Ward B"}))
+
+--21.  Availability for a category
+ICU Bed Availability = 
+VAR Occ = CALCULATE([Bed Occupancy Rate], 
+FILTER(ALL(DimRegion), DimRegion[RegionName] = "ICU")) RETURN 1 - Occ
+
+--22.  Define a selected period
+Is In Selected Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+VAR RowDate = MAX(DimDate[Date]) 
+RETURN IF(RowDate >= S && RowDate <= E, 1, 0)
+
+--23.  KPI Achievement
+KPI Achievement = 
+VAR SelKPI = SELECTEDVALUE(KPISelector[KPIName]) 
+RETURN SWITCH(SelKPI, "Bed Occupancy", 
+            DIVIDE([Bed Occupancy Rate Period], [Target Bed Occupancy]), "Satisfaction", 
+            DIVIDE([Satisfaction Pct Period], [Target Satisfaction]), "Staff Efficiency", 
+            DIVIDE([Staff Efficiency Period], [Target Staff Efficiency]), "Emergency Wait", 
+            DIVIDE([Target Emergency Wait], [Emergency Wait Time Period]),   BLANK())
+
+--24.  Aggregate KPIs Achieved
+KPIs On Track = 
+VAR BedOK = IF(DIVIDE([Bed Occupancy Rate Period], [Target Bed Occupancy]) >= 1, 1, 0) 
+VAR SatOK = IF(DIVIDE([Satisfaction Pct Period], [Target Satisfaction]) >= 1, 1, 0) 
+VAR StaffOK = IF(DIVIDE([Staff Efficiency Period], [Target Staff Efficiency]) >= 1, 1, 0) 
+VAR EmergOK = IF(DIVIDE([Target Emergency Wait], [Emergency Wait Time Period]) >= 1, 1, 0) 
+RETURN BedOK + SatOK + StaffOK + EmergOK
+
+--25.  Occupied/busy rate
+Occupied Beds = SUM(FactBedOccupancy[BedsOccupied])
+
+--26.  Events Today
+Operations Events Today = 
+VAR Ref = [Reference Date] 
+RETURN CALCULATE(COUNTROWS(FactActivityLog), 
+REMOVEFILTERS(DimDate), DimDate[Date] = Ref, DimActivityType[Category] IN {"operations", "alert"})
+
+--27.  Avg  Achieved Score
+Overall Health Score = 
+VAR Bed = DIVIDE([Bed Occupancy Rate Period], [Target Bed Occupancy]) 
+VAR Sat = DIVIDE([Satisfaction Pct Period], [Target Satisfaction]) 
+VAR Staff = DIVIDE([Staff Efficiency Period], [Target Staff Efficiency]) 
+VAR Emerg = DIVIDE([Target Emergency Wait], [Emergency Wait Time Period]) 
+RETURN DIVIDE(Bed + Sat + Staff + Emerg, 4)
+
+--28.  Activity Volume
+Patients Handled = SUM(FactStaffing[PatientsHandled])
+
+--29.  Activity Volume Today
+Patients Today = 
+VAR Ref = [Reference Date] 
+RETURN CALCULATE([Total Visits], 
+REMOVEFILTERS(DimDate), DimDate[Date] = Ref)
+
+--30.  Period END
+Period End Date = [Reference Date]
+
+--31.  Period START
+Period Start Date = 
+VAR Sel = SELECTEDVALUE(PeriodPicker[PeriodName], "Month") 
+VAR Ref = [Reference Date] RETURN SWITCH(Sel, "Today", Ref, 
+      "Week", Ref - 6, 
+      "Month", DATE(YEAR(Ref), MONTH(Ref), 1), 
+      "Quarter", DATE(YEAR(Ref), ((MONTH(Ref) - 1) - MOD(MONTH(Ref) - 1, 3)) + 1, 1),
+      "Year",    DATE(YEAR(Ref), 1, 1),   Ref)
