@@ -220,4 +220,151 @@ Satisfaction vs Target = [Satisfaction Pct Period] - [Target Satisfaction]
 --43. Dynamic Name of Selected KPI
 Selected KPI Name = SELECTEDVALUE(KPISelector[KPIName], "Patient Volume")
 
---44. 
+--44. Total Count of People
+Staff Count = SUM(FactStaffing[StaffCount])
+
+--45.  Performance rate all time- assumed more is better
+Staff Efficiency = DIVIDE([Patients Handled], [Staff Count])
+
+--46.  Performance rate specific period  
+Staff Efficiency Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] R
+ETURN CALCULATE([Staff Efficiency], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--47.  Performance in selected month
+Staff Efficiency Selected Month = 
+VAR Sel = SELECTEDVALUE(MonthPicker[YearMonth]) 
+RETURN CALCULATE([Staff Efficiency], 
+REMOVEFILTERS(DimDate), DimDate[YearMonth] = Sel)
+
+--48.  Performance vs previous Quarter
+Staff Efficiency vs Last Quarter = 
+VAR Ref = [Reference Date] 
+VAR Cur = CALCULATE([Staff Efficiency], 
+REMOVEFILTERS(DimDate),   DimDate[Date] >= DATE(YEAR(Ref), MONTH(Ref) - 2, 1) && DimDate[Date] <= Ref) VAR Prev = CALCULATE([Staff Efficiency], 
+REMOVEFILTERS(DimDate),   DimDate[Date] >= DATE(YEAR(Ref), MONTH(Ref) - 5, 1) &&   DimDate[Date] <= DATE(YEAR(Ref), MONTH(Ref) - 3, 1)) 
+RETURN Cur - Prev
+
+--49.  Staffing %
+Staffing Level Pct = 
+VAR Ratio = [Staff Efficiency] 
+VAR Target = [Target Staff Efficiency] 
+RETURN DIVIDE(Ratio, Target)
+
+--50. Target Rate
+Target Bed Occupancy = 0.80
+
+--51.  Target time
+Target Emergency Wait = 20
+
+--52.  Target rate again
+Target Satisfaction = 0.91
+
+-- 53.  Target rate
+Target Staff Efficiency = 4.7
+
+-- 54.  Target rate
+Target Treatment Success = 0.93
+
+-- 55.  Target
+Target Wait Minutes = 15
+
+--56.  Total 1
+Total Beds = SUM(FactBedOccupancy[BedsTotal])
+
+--57.  Total 2
+Total Visits = COUNTROWS(FactPatientVisit)
+
+--58.  Success rate
+Treatment Success Rate = 
+DIVIDE(CALCULATE(COUNTROWS(FactPatientVisit), FactPatientVisit[TreatmentSuccess] = 1), 
+COUNTROWS(FactPatientVisit))
+
+--59.  Success rate specific period
+Treatment Success Rate Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+RETURN CALCULATE([Treatment Success Rate], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--60.  Success v last year (problem here)
+Treatment Success vs Last Year = 
+VAR Ref = [Reference Date] 
+VAR Cur = CALCULATE([Treatment Success Rate], 
+REMOVEFILTERS(DimDate),   DimDate[Year] = YEAR(Ref)) 
+VAR Prev = CALCULATE([Treatment Success Rate], 
+REMOVEFILTERS(DimDate),   DimDate[Year] = YEAR(Ref) - 1) RETURN Cur - Prev
+
+--61.  Trend current month
+Trend Current Month = 
+VAR SelKPI = [Selected KPI Name] 
+VAR Ref = [Reference Date] 
+VAR CurYear = YEAR(Ref) 
+VAR CurMonth = MONTH(Ref) 
+VAR Dom = SELECTEDVALUE(DimDate[DayOfMonth]) 
+VAR LastDay = DAY(EOMONTH(DATE(CurYear, CurMonth, 1), 0)) 
+VAR TargetDate = IF(Dom <= LastDay, DATE(CurYear, CurMonth, Dom)) 
+RETURN CALCULATE( SWITCH(SelKPI, "Patient Volume", [Total Visits], "Bed Occupancy", [Bed Occupancy Rate],
+            "Satisfaction", [Satisfaction Pct], "Staff Efficiency", [Staff Efficiency], 
+            "Emergency Wait", [Emergency Wait Time]), 
+            ALL(DimDate), DimDate[Date] = TargetDate)
+
+--62.  Trend Prev Month
+Trend Previous Month = 
+VAR SelKPI = [Selected KPI Name] 
+VAR Ref = [Reference Date] 
+VAR PrevEnd = EOMONTH(Ref, -1) 
+VAR PrevYear = YEAR(PrevEnd) 
+VAR PrevMonth = MONTH(PrevEnd) 
+VAR Dom = SELECTEDVALUE(DimDate[DayOfMonth]) 
+VAR LastDay = DAY(PrevEnd) VAR TargetDate = IF(Dom <= LastDay, DATE(PrevYear, PrevMonth, Dom)) 
+RETURN CALCULATE(  SWITCH(SelKPI, "Patient Volume", [Total Visits], "Bed Occupancy", [Bed Occupancy Rate],
+            "Satisfaction", [Satisfaction Pct], "Staff Efficiency", [Staff Efficiency], 
+            "Emergency Wait", [Emergency Wait Time]),   
+            ALL(DimDate),   DimDate[Date] = TargetDate)
+
+--63.  Events Last 7 days
+Visits Last 7 Days = 
+VAR Ref = [Reference Date] 
+VAR WeekStart = Ref - 6 
+VAR RowDate = MAX(DimDate[Date]) 
+RETURN IF(RowDate >= WeekStart && RowDate <= Ref, [Total Visits])
+
+--64.  Events this period
+Visits Period = 
+VAR S = [Period Start Date] 
+VAR E = [Period End Date] 
+RETURN CALCULATE([Total Visits], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= S && DimDate[Date] <= E)
+
+--65.  Events Prev 7 days
+Visits Prev 7 Days = 
+VAR Ref = [Reference Date] 
+VAR PrevEnd = Ref - 7 
+VAR PrevStart = Ref - 13 
+VAR RowDate = MAX(DimDate[Date]) - 7 
+RETURN IF(RowDate >= PrevStart && RowDate <= PrevEnd,   
+CALCULATE([Total Visits], REMOVEFILTERS(DimDate), DimDate[Date] = RowDate))
+
+--66.  Down Time vs Last month
+Wait Time vs Last Month = 
+VAR Ref = [Reference Date] 
+VAR CurStart = DATE(YEAR(Ref), MONTH(Ref), 1) 
+VAR PrevEnd = CurStart - 1 
+VAR PrevStart = DATE(YEAR(PrevEnd), MONTH(PrevEnd), 1) 
+VAR Cur = CALCULATE([Avg Wait Time], 
+REMOVEFILTERS(DimDate), DimDate[Date] >= CurStart && DimDate[Date] <= Ref) 
+VAR Prev = CALCULATE([Avg Wait Time], 
+REMOVEFILTERS(DimDate),   DimDate[Date] >= PrevStart && DimDate[Date] <= PrevEnd) RETURN Cur - Prev
+
+--  67.  Weekly events
+Weekly Patient Volume = 
+VAR Ref = [Reference Date] 
+VAR WeekStart = Ref - 6 
+RETURN CALCULATE([Total Visits], 
+REMOVEFILTERS(DimDate),   DimDate[Date] >= WeekStart && DimDate[Date] <= Ref)
+
+--68.  Weekly event delta
+Weekly Volume Delta = [Weekly Patient Volume] - [Previous Week Patient Volume]
