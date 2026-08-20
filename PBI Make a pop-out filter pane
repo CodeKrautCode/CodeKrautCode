@@ -1,0 +1,143 @@
+--Power BI Pop-Out Filter Pane Using Bookmarks
+--For when your page gets too crowded with filters, create a pop-out filter pane.
+
+Step 1: Create the Filter Panel
+1.1 Insert a Background Shape
+
+Navigate to:  Insert → Shapes → Rounded Rectangle (or whichever shape you like)
+--format the shape to your liking
+
+1.2 Add Your Slicers
+Create slicers for your filters and position them inside the shape you created in Step 1.  
+Example slicers:Region, Site, Product, Department etc
+
+Step 2: Create the Open Filter Button
+Navigate to:  Insert → Buttons → Blank
+Position the button outside the panel.
+Label it: "Open filter pane" or something to that effect.  This button will display the filter panel.
+
+Step 3: Create the Close Filter Button
+Insert another button.
+Label it: Close Filter Pane
+Place it inside the filter panel.
+This button will hide the filter panel.
+
+Step 4: Open the Selection and Bookmark Panes
+Navigate to:  View → Selection
+AND
+View → Bookmarks
+You need BOTH open
+
+You should now have
+Selection Pane:
+Open Button
+Close Button
+Slicer 1
+Slicer 2
+Slicer 3
+Background Shape
+Bookmark Pane:  empty for now
+These two panes are required for the pop-out panel functionality.
+
+Step 5: Group the Filter Objects
+In the Selection Pane:
+Hold Ctrl and select:
+Close Button
+Slicer 1
+Slicer 2
+Slicer 3
+Background Shape
+
+Then Right-click -> Group -> Rename the group to "Filter Pane"
+Your Selection Pane now looks like:
+Selection
+-----------
+Open Button
+
+Filter Pane
+  Background Shape
+  Region Slicer
+  Audit Result Slicer
+  Audit Body Slicer
+  Close Button
+
+Step 6: Create the CLOSED Bookmark
+Hide the Filter Pane
+In the Selection Pane:
+Click the eye icon next to Filter Pane
+
+The panel disappears.  Only the Open button should remain visible.
+
+Create Bookmark:
+Open the Bookmarks Pane.
+Select: ADD
+Rename the bookmark to "Closed"
+
+Bookmark Settings
+Select the three dots beside the bookmark.
+Choose:
+☐ Data
+☑ Display
+☑ Current Page
+Data should generally be OFF so that slicer selections are not reset when opening or closing the pane.
+
+Step 7: Create the OPEN Bookmark
+Return to the Selection Pane.
+Click the eye icon beside Filter Pane.  The panel becomes visible again.
+
+Create Open Bookmark
+Select: ADD
+Rename the bookmark to "Open"
+Bookmark Settings
+Configure:
+☐ Data
+☑ Display
+☑ Current Page
+AGAIN: Data = OFF
+
+Step 8: Connect the Buttons to the Bookmarks
+Open Filter Button
+Select: Open Filter Pane
+Navigate to: Format Pane → Action
+Turn Action ON.
+Configure:
+Type = Bookmark
+Bookmark = Open
+
+Example:
+
+Action
+------
+ON
+
+Type:
+Bookmark
+
+Bookmark:
+Open
+----
+Close Filter Button
+Select:  Close Filter Pane
+Navigate to: Format Pane → Action
+Configure:
+Type = Bookmark
+Bookmark = Closed
+
+Example:
+Action
+------
+ON
+
+Type:
+Bookmark
+
+Bookmark:
+Closed
+
+Professional Version:   For a more polished result:
+
+Move the panel partially off-screen.
+Create an Open bookmark with panel visible.
+Create a Closed bookmark with panel hidden outside the page.
+Use icons instead of text buttons.
+Add a semi-transparent dark overlay behind the panel.
