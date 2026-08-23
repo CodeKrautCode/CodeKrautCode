@@ -117,7 +117,9 @@ Bookmark:
 Open
 ----
 Close Filter Button
-Select:  Close Filter Pane
+Select:  Close Filter Pane:  Hide ONLY the Filter Pane group.  The entire panel should disappear.
+It should look like:  👁 Open Filter Button 🚫 Filter Pane
+Now go to the Bookmarks pane.  Select the 'Closed' bookmark and then 'UPDATE'.  This captures the hidden state.
 Navigate to: Format Pane → Action
 Configure:
 Type = Bookmark
