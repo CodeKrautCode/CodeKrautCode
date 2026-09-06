@@ -1,0 +1,54 @@
+--For cases where you need responsive decimal places.  For example 1,234,456.0000 should become 1,234,456 and 0 should become 0.0123
+
+--Step 1.  Turn your numeric column into a measure:
+Result_numeric_measure= SELECTEDVALUE(Table[Result_numeric])
+
+--Step 2. Use your measure where you'd use the regular field
+-- Click on the measure in the data panel
+-- Go to 'Measure tools'
+-- In the Format box, select 'dynamic' from the drop down
+-- To the left of the formula bar, and to the left of the green tick/red cross, you can select 'Measure' or 'Format'.
+-- Select 'Format'
+-- In the formula bar, paste this:
+
+IF (
+    SELECTEDMEASURE() <= 1,
+    "#,##0.00",
+    "#,##0"
+)
+
+-- This code gives all values <=1 two decimal places, else no decimal places.  
+-- Alter this to suit your needs
+-- You can also include string values where needed into the formula.  
+
+--BUG:  when used in a PBI table, data may be incorrectly omitted.
+--use this instead:
+
+
+-- Make the measure
+Result(N)_Measure_ =
+VAR _Value =
+    MAX ( 'SM'[Result_N] ) 
+RETURN
+    COALESCE ( _Value, 0 )
+
+
+-- Code for dynamic formatting
+VAR _HasValue =
+    COUNTROWS (
+        FILTER (
+            'SM',
+            NOT ISBLANK ( 'SM'[Result_N] )
+        )
+    ) > 0 
+VAR _Value =
+    SELECTEDMEASURE() 
+RETURN
+    SWITCH (
+        TRUE(),
+        NOT _HasValue, ";;;",
+        ABS ( _Value ) <= 1, "#,##0.00",
+        "#,##0"
+    )
+ 
+  
