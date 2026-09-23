@@ -1,0 +1,32 @@
+These are two measures to provide a 7-day running total for the current 7 days (today moving back 7 days) and the previous week (7 days ago moving to 13 days ago).
+Change the days to achieve any time windows.
+
+Tests Last 7 Days = 
+CALCULATE (
+    [Count of Sampled],
+    FILTER (
+        ALL ( 'SM'[sampled_date] ),
+        'SM'[sampled_date] >= TODAY() - 6
+            && 'SM'[sampled_date] <= TODAY()
+    )
+)
+
+Tests Previous Week = 
+CALCULATE (
+    [Count of Sampled],
+    FILTER (
+        ALL ( 'SM'[sampled_date] ),
+        'SM'[sampled_date] >= TODAY() - 13
+            && 'SM'[sampled_date] <= TODAY() - 7
+    )
+)
+
+WoW Change  % = 
+DIVIDE(
+    [WoW Change Tests],
+    [Tests Previous Week]
+)
+
+WoW Change Tests = 
+[Tests Last 7 Days] -
+[Tests Previous Week]
