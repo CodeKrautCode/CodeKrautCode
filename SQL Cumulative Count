@@ -1,0 +1,19 @@
+
+SELECT
+  sampled_day,
+  daily_count,
+  SUM(daily_count) OVER (
+    ORDER BY sampled_day
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+  ) AS cumulative_count
+FROM (
+  SELECT
+    CAST(sampled_date AS DATE) AS sampled_day,
+    COUNT(id_text) AS daily_count
+  FROM fdp_prd_srv_internal.srv_internal_lims.samp_job_test_result
+  where cast(sampled_date as date) >'2026-09-01'
+  --WHERE CAST(sampled_date AS DATE) IN ('2026-08-30', '2026-09-04', '2026-09-11', '2026-09-30', '2026-10-31', '2026-11-18') 
+  GROUP BY CAST(sampled_date AS DATE)
+) d
+ORDER BY sampled_day;
+
