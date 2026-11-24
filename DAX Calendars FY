@@ -1,0 +1,25 @@
+Calendar=CALENDARAUTO(3)
+  --'3' means the fiscal year ends in March.  If FY starts in October, use '9' and change '-3' to '-9' and '4' to '10' in the formulas below.
+-- CALENDARAUTO picks up every date column in the model, so a birthdate column can add years that are not needed.  In this instance, use CALENDAR(first dare, laste date) instead.
+
+Month = FORMAT('Calendar'[date], "MMM"
+  then sort by Fiscal Month Number
+
+Fiscal Month Number = MONTH(EDATE('Calendar'[Date], -3))
+'-3' moves dates back 3 months so April = 1, March=12.
+
+Fiscal Quarter="FQ" & QUARTER(EDATE('Calendar'[Date],-3))
+--April - June = FQ1
+
+Fiscal Year= VAR FY=YEAR(EDATE('Calendar'[Date],-3))
+RETURN FY & "-" & RIGHT(FY+1,2)
+--April 2025 to March 2026 => "2025-26"
+
+Fiscal Week=  
+VAR D='Calendar'[Date]
+VAR FYStart = DATE(YEAR(EDATE(D,-3)), 4,1)
+VAR Week1=FYStart-WEEKDAY(FYStart, 2) + 1
+RETURN "FW" & (INT(DATEDIFF(Week1, D, DAY)/7)+1)
+--'-3' and '4' make FY start on April 1
+--The '2' in WEEKDAY forces each week to start on a Monday.  Use '1' to start on a Sunday.
+--
